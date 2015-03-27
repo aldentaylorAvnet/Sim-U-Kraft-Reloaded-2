@@ -1,0 +1,16 @@
+[
+{
+  "modid": "SUKReloaded2",
+  "name": "Sim-U-Kraft Reloaded 2.0.0",
+  "description": "Spawns NPCs in your world. These NPCs can be hired to do many tasks, such as build houses, cut down trees or sell food. Build your town into a sprawling metropolis!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/2332298-sim-u-kraft-reloaded-the-sims-in-minecraft-updated",
+  "updateUrl": "",
+  "authorList": ["AshJack"],
+  "credits": "Satscape for making the original Sim-U-Kraft mod",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
