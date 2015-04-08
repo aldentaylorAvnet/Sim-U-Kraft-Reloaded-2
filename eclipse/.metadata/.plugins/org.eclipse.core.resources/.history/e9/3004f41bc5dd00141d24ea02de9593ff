@@ -1,0 +1,81 @@
+package ashjack.SUKReloaded2.core.util;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.FileResourcePack;
+import net.minecraft.client.resources.IResourcePack;
+import ashjack.SUKReloaded2.folk.Race;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class ExternalTextureLoader /*extends FolderResourcePack implements IResource*/{
+	
+	//public ExternalTextureLoader() 
+	//{
+	//	super(new File(SUK2IO.getSimukraftFolder("Races")));
+	//}
+	
+	@SideOnly(Side.CLIENT)
+	public static void pushTextures()
+	{
+		try 
+		{
+			/*Field resources = Minecraft.class.getDeclaredField("defaultResourcePacks");
+			resources.setAccessible(true);
+			List<IResourcePack> resourcePack = (List<IResourcePack>)resources;*/
+			
+			Minecraft mc = Minecraft.getMinecraft();
+			Class classMC = mc.getClass();
+			
+			Field field = Minecraft.class.getDeclaredField("defaultResourcePacks");
+			field.setAccessible(true);
+			
+			List<IResourcePack> changedList = new ArrayList<IResourcePack>();
+			
+			List<IResourcePack> list = (List<IResourcePack>) field.get((List<IResourcePack>)changedList);
+			
+			changedList = list;
+			
+			for(File file : Race.raceSkinFiles)
+			{
+				changedList.add(new FileResourcePack(file));
+			}
+			
+			 
+			field.set(Minecraft.class, changedList);
+
+			/*
+			Type listType = method.getGenericParameterTypes()[0];
+			if (listType instanceof ParameterizedType) {
+			    Type elementType = ((ParameterizedType) listType).getActualTypeArguments()[0];
+			}*/
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		} 
+	}
+
+	/*@Override
+	public InputStream getInputStream() 
+	{
+		return null;
+	}
+
+	@Override
+	public boolean hasMetadata() 
+	{
+		return false;
+	}
+
+	@Override
+	public IMetadataSection getMetadata(String p_110526_1_) 
+	{
+		return null;
+	}*/
+
+}

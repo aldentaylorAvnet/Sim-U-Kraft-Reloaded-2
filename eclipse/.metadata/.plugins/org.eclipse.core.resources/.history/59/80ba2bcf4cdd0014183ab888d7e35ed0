@@ -1,0 +1,19 @@
+package ashjack.SUKReloaded2.folk;
+
+import ashjack.SUKReloaded2.entity.EntityFolk;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
+
+public class FolkUtils 
+{
+	public FolkData generateFolk(World world)
+	{
+		EntityFolk theFolkEntity = EntityList.createEntityByName(fullEntityName, world);  
+		
+		EntityPlayer thePlayer = (EntityPlayer) world.playerEntities.get(0);
+		
+		theFolkEntity.setPosition(thePlayer.getPlayerCoordinates()); 
+        world.spawnEntityInWorld(theFolkEntity); 
+	}
+}

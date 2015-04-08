@@ -1,0 +1,8 @@
+package ashjack.SUKReloaded2.folk;
+
+public class FolkNeeds 
+{
+	public int hungerLevel;
+	public int thirstLevel;
+	public int entertainmentLevel;
+}

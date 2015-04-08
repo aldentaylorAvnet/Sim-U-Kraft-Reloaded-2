@@ -1,0 +1,27 @@
+package ashjack.SUKReloaded2.folk.jobs;
+
+import ashjack.SUKReloaded2.folk.FolkData;
+
+public class JobBaker extends Job{
+
+	public Stage theStage;
+	public FolkData theFolk;
+	
+	@Override
+	public void onArrivedAtWork() 
+	{
+		
+	}
+
+	@Override
+	public void resetJob()
+	{
+		theStage = Stage.IDLE;
+	}
+
+	public enum Stage
+	{
+		IDLE, ARRIVEDATSHOP, GOINGTOWHEATFARM, COLLECTINGWHEAT, GOBACKTOBAKERY, MAKEBREAD, SELLINGBREAD;
+	}
+
+}

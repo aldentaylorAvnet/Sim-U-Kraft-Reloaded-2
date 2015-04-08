@@ -1,0 +1,11 @@
+package ashjack.SUKReloaded2.folk;
+
+import net.minecraft.world.World;
+
+public class FolkUtils 
+{
+	public void generateFolk(World world)
+	{
+		
+	}
+}

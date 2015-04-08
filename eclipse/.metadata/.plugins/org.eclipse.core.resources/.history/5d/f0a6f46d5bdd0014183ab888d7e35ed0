@@ -1,0 +1,28 @@
+package ashjack.SUKReloaded2.folk.textures;
+
+import java.io.InputStream;
+
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.data.IMetadataSection;
+
+public class FolkResources implements IResource {
+
+	@Override
+	public InputStream getInputStream() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean hasMetadata() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public IMetadataSection getMetadata(String p_110526_1_) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

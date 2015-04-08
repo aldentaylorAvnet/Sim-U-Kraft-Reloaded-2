@@ -1,0 +1,18 @@
+package ashjack.SUKReloaded2.folk;
+
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
+
+public class FolkUtils 
+{
+	public FolkData generateFolk(World world)
+	{
+		FolkData theFolk = EntityList.createEntityByName(fullEntityName, world);  
+		
+		EntityPlayer thePlayer = (EntityPlayer) world.playerEntities.get(0);
+		
+		theFolk.setPosition(world.); 
+        world.spawnEntityInWorld(conjuredEntity); 
+	}
+}

@@ -1,0 +1,93 @@
+package ashjack.SUKReloaded2.core.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+
+public class SUK2FilePackager 
+{	
+	static File racesFolder = new File(SUK2IO.getSimukraftFolder("Races"));
+	
+	//Create Temporary Files To Be Packaged
+	public static void createTemps() throws IOException
+	{
+		File racetmp = new File(SUK2IO.getTempFolder("Races"));
+		FileUtils.copyDirectory(racesFolder, racetmp);
+	}
+	
+	//Package Race
+	public static void packageAll() throws IOException
+	{
+		createTemps();
+		
+		Collection<File> fileCollection = FileUtils.listFilesAndDirs(new File(SUK2IO.getTempFolder("Races")), TrueFileFilter.INSTANCE , TrueFileFilter.INSTANCE );
+
+		ZipOutputStream zos = null;
+		
+	    try 
+	    {
+	    	fileCollection.add(new File(SUK2IO.getSimukraftFolder("__LOAD") + "/pack.mcmeta"));
+	    		    	
+	    	zos = new ZipOutputStream(new FileOutputStream(new File(SUK2IO.getTempFolder("Resources") + "/Race.zip")));
+	    	for (File f : fileCollection) {
+	        System.out.println(f.getAbsolutePath().split("Reloaded")[1]);
+	        if (!f.isFile())
+	          continue;
+	        ZipEntry ze = new ZipEntry(f.getAbsolutePath().split("Simukraft_Reloaded")[1]);
+	        zos.putNextEntry(ze);
+	        InputStream is = null;
+	        try {
+	          is = new FileInputStream(f);
+	          IOUtils.copy(is, zos);
+	        } finally {
+	          IOUtils.closeQuietly(is);
+	        }
+	      }
+	      zos.flush();
+	    } finally {
+	      IOUtils.closeQuietly(zos);
+	    }
+				
+		/*File[] files = (fileCollection.toArray(new File[fileCollection.size()]));
+		
+		ArrayList<File> fileList = new ArrayList<File>(Arrays.asList(files));
+		
+		for(int i = 0; i<fileList.size(); i++)
+		{
+			SUK2Log.log.info(fileList.get(i).getName());
+			SUK2Log.log.info(fileList.get(i).getParent());
+			
+			if(fileList.get(i).getName().contains("Races"))
+			{
+				SUK2Log.log.info("Removing Races Folder");
+				fileList.remove(i);
+			}
+			
+			if(fileList.get(i).getParentFile().getName().contains("SUK2") && !fileList.get(i).isDirectory())
+			{
+				fileList.remove(i);
+			}
+		}
+		
+		fileList.add(new File(SUK2IO.getSimukraftFolder("__LOAD") + "/pack.mcmeta"));
+		
+		File raceZip = new File(SUK2IO.getTempFolder("Resources") + "/Race.zip");
+		raceZip.getParentFile().mkdirs();
+		raceZip.createNewFile();
+		
+		Packager.packZip(raceZip, fileList);
+		
+		//ZipUtils.zipIt(zipFile);
+		
+		new File(SUK2IO.getTempFolder()).delete();*/
+	}
+}

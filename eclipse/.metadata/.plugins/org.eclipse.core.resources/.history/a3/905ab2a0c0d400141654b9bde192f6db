@@ -1,9 +1,0 @@
-package ashjack.SUKReloaded2.registry;
-
-public class SUKBlocks 
-{
-	public static void loadBlocks()
-	{
-		
-	}
-}

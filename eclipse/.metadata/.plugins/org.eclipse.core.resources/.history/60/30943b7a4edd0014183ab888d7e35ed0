@@ -1,0 +1,27 @@
+package ashjack.SUKReloaded2.folk;
+
+import ashjack.SUKReloaded2.core.SUK2Log;
+import ashjack.SUKReloaded2.entity.EntityFolk;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.world.World;
+
+public class FolkUtils 
+{
+	public void generateFolk(World world)
+	{
+		EntityFolk theFolkEntity = (EntityFolk)EntityList.createEntityByName("SUK2.Folk", world);  
+		EntityPlayer thePlayer = (EntityPlayer) world.playerEntities.get(0);
+		if (EntityList.stringToClassMapping.containsKey("SUK2.Folk"))
+        { 
+		
+		theFolkEntity.setPosition(thePlayer.getPlayerCoordinates().posX, thePlayer.getPlayerCoordinates().posY, thePlayer.getPlayerCoordinates().posZ); 
+        world.spawnEntityInWorld(theFolkEntity); 
+        }
+		else
+		{
+			SUK2Log.log.info("Entity Not Found");
+		}
+	}
+}

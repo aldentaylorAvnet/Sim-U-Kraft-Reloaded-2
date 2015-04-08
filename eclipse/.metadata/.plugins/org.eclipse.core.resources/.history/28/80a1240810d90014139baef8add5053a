@@ -1,0 +1,568 @@
+package ashjack.SUKReloaded2.folk;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+import ashjack.SUKReloaded2.core.util.V3;
+import ashjack.SUKReloaded2.entity.EntityFolk;
+
+public class FolkData 
+{
+	public String name;
+	public int age = 18;
+	public byte gender;
+	public Race folkRace;
+	
+	public String statusText;
+	
+	public FolkAction action;
+	public boolean stayPut;
+	
+	public V3 location;
+	public V3 employedAt;
+	public V3 destination;
+	
+	public EntityFolk theEntity;
+	private int entityId;
+
+	public FolkData(World world)
+	{
+		folkRace = Race.assignRandomRace();
+		location = getLocationCloseToPlayer();
+
+		if (location == null)
+		{
+			return;
+		}
+		
+		respawnEntity(world);
+		FolkRefs.theFolks.add(this);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public void gotoXYZ(V3 whereTo, GotoMethod methodOfTravel)
+	{
+
+		/*if(theEntity.worldObj.isRemote == true);
+    	{
+    		SimukraftReloaded.log.info("Is Remote");
+    	}
+    	if(theEntity.worldObj.isRemote == false)
+    	{
+    		SimukraftReloaded.log.info("Is NOT Remote");
+    	}*/
+
+		if (whereTo == null)
+		{
+			return;
+		}
+
+		this.stayPut = false;
+		this.destination = whereTo.clone();
+
+		if (this.destination == null)
+		{
+			return;
+		}
+
+		this.destination.doNotTimeout = false;
+		int dist = this.location.getDistanceTo(whereTo);
+
+		if (!this.isSpawned())
+		{
+			methodOfTravel = null;
+		}
+
+		if (methodOfTravel == null)
+		{
+			//decide method of travel
+			EntityPlayer pl;
+			V3 playpos = null;
+
+			try
+			{
+				pl = FolkData.getClosestPlayer(this.location);
+
+				if (pl == null || (this.location.theDimension != this.destination.theDimension))
+				{
+					dist = 999;
+				}
+				else
+				{
+					playpos = new V3(pl.posX, pl.posY, pl.posZ, pl.dimension);
+				}
+			}
+			catch (Exception e)
+			{
+				dist = 999;
+			}
+
+			if (dist < 40)
+			{
+				this.gotoMethod = GotoMethod.WALK;
+			}
+
+			if (!this.isSpawned() || dist >= 40)
+			{
+				this.gotoMethod = GotoMethod.BEAM;
+			}
+
+			if (playpos != null)  //will be null if player in different dimension or WAY out of range
+			{
+				if (this.location.getDistanceTo(playpos) >= 40 && whereTo.getDistanceTo(playpos) >= 40)
+				{
+					this.gotoMethod = GotoMethod.SHIFT;
+				}
+
+				try
+				{
+					if (location.theDimension != Minecraft.getMinecraft().thePlayer.dimension &&
+							this.destination.theDimension != Minecraft.getMinecraft().thePlayer.dimension)
+					{
+						this.gotoMethod = GotoMethod.SHIFT;
+					}
+				}
+				catch (Exception e)
+				{
+					this.gotoMethod = GotoMethod.SHIFT;
+				}
+			}
+
+			//catch all
+			if (methodOfTravel == null)
+			{
+				methodOfTravel = GotoMethod.SHIFT;
+			}
+		}
+		else
+		{
+			this.gotoMethod = methodOfTravel;
+		}
+		
+		//// start them going
+		if (this.destination == null)
+		{
+			return;
+		}
+
+		if (gotoMethod == GotoMethod.SHIFT)
+		{
+			int xxx = destination.x.intValue();
+			int zzz = destination.z.intValue();
+			destination.x = xxx + 0.5d;
+			destination.z = zzz + 0.5d;
+
+			if (this.theEntity != null)
+			{
+				//this.theEntity.setPosition(destination.x, destination.y, destination.z);
+				//this.theEntity.setPositionAndUpdate(destination.x, destination.y+1, destination.z);
+
+				this.theEntity.posX = destination.x;
+				this.theEntity.posY = destination.y;
+				this.theEntity.posZ = destination.z;
+
+				try {
+					if (location.theDimension != destination.theDimension)
+					{
+
+						this.theEntity.travelToDimension(destination.theDimension);
+						this.theEntity.dimension = destination.theDimension;
+						this.location.theDimension = destination.theDimension;
+
+					}
+				} catch(Exception e) {} //NPE destination or .theDimension?
+			}
+
+			try {
+				this.location = destination.clone();
+			} catch(Exception e) {} // NPEs when above NPEs
+			this.destination = null;
+		}
+		else if (gotoMethod == GotoMethod.BEAM)
+		{
+			this.timeStartedGotoing = System.currentTimeMillis();
+			beamMeTo(whereTo);
+		}
+		else if (gotoMethod == GotoMethod.WALK)
+		{
+			this.stayPut = false;
+			this.timeStartedGotoing = System.currentTimeMillis();
+			if (this.theEntity !=null) {
+				this.theEntity.gotPath=false;
+			}
+			//already set their destination, so this is all it needs
+			//It will only get here if they are spawned AND within walking distance
+			//so the entity's MoveEntity() method takes over now.
+		}
+	}
+	
+	public void beamMeTo(V3 whereToIn)
+	{
+		this.stayPut = true;
+		this.updateLocationFromEntity(); //only does this if they are currently spawned
+
+		if (this.beamingTo != null)
+		{
+			SimukraftReloaded.log.warning("FolkData:beamMeTo() already beaming " + this.name);
+			return;
+		}
+
+		if (whereToIn == null)
+		{
+			SimukraftReloaded.log.warning("FolkData: beamMeTo() whereTo was NULL, cancelled beaming");
+			return;
+		}
+
+		timeStartedGotoing = System.currentTimeMillis();
+		V3 whereTo = whereToIn.clone();
+		World destWorld = MinecraftServer.getServer().worldServerForDimension(whereTo.theDimension);
+
+		for (int y = 0; y < 200; y++)
+		{
+			Block id1 = destWorld.getBlock(whereTo.x.intValue(), whereTo.y.intValue(), whereTo.z.intValue());
+			Block id2 = destWorld.getBlock(whereTo.x.intValue(), whereTo.y.intValue() + 1, whereTo.z.intValue());
+
+			if (id1 == null && id2 == null)
+			{
+				break;
+			}
+
+			whereTo.y++;
+		}
+
+		try
+		{
+			int xxx = whereTo.x.intValue();
+			whereTo.x = xxx + 0.5d;
+			xxx = whereTo.z.intValue();
+			whereTo.z = xxx + 0.5d;
+			whereTo.y -= 199d;
+		}
+		catch (Exception e)
+		{
+			return;
+		}
+
+		this.destination = whereTo.clone();
+		SimukraftReloaded.log.info("FolkData: BeamMeTo() for " + this.name + " to " + whereTo.toString() + " Dim:" + whereTo.theDimension);
+		this.stayPut = true;
+
+		if (isSpawned())
+		{
+			this.theEntity.getNavigator().clearPathEntity();
+		}
+
+		try {
+			if (ModSimukraft.proxy.getClientWorld() != null)
+			{
+				//ModSimukraft.proxy.getClientWorld().playSound(location.x, location.y, location.z, "ashjacksimukraftreloaded:beamdown", 1.0f, 1.0f, false);
+				//ModSimukraft.proxy.getClientWorld().playSound(whereTo.x, whereTo.y, whereTo.z, "ashjacksimukraftreloaded:beamdown", 1f, 1f, false);
+			}
+
+			this.beamingTo = whereTo.clone(); //setting this will trigger the beaming progress in the tick/game loop
+		} catch(Exception e) {}
+	}
+
+	/** called repeatedly during the beaming progress */
+	private void doBeaming()
+	{
+		try
+		{
+			if (System.currentTimeMillis() - timeStartedGotoing > 4000 || beamingTo == null)
+			{
+				// arrived via beaming
+				if (this.theEntity != null)
+				{
+					//this.theEntity.setPosition(beamingTo.x, beamingTo.y, beamingTo.z);
+					this.theEntity.setPositionAndUpdate(beamingTo.x, beamingTo.y+1, beamingTo.z);
+
+					//this.theEntity.serverPosX = Integer.parseInt(beamingTo.x.toString());
+					//this.theEntity.serverPosY = Integer.parseInt(beamingTo.y.toString());
+					//this.theEntity.serverPosZ = Integer.parseInt(beamingTo.z.toString());
+
+					//this.theEntity.posX = beamingTo.x;
+					//this.theEntity.posY = beamingTo.y;
+					//this.theEntity.posZ = beamingTo.z;
+
+					if (theEntity.dimension != beamingTo.theDimension)
+					{
+						this.theEntity.travelToDimension(beamingTo.theDimension);
+						this.theEntity.dimension = beamingTo.theDimension;
+						this.location.theDimension = beamingTo.theDimension;
+					}
+				}
+
+				SimukraftReloaded.log.info("FolkData: doBeaming() complete for " + this.name + " to " + beamingTo.toString() + " (dim " + beamingTo.theDimension + ")");
+				this.location = beamingTo.clone();
+				this.destination = null;
+				beamingTo = null;
+				respawnEntity(MinecraftServer.getServer().worldServerForDimension(location.theDimension));
+				return;
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			this.destination = null;
+			beamingTo = null;
+			return;
+		}
+
+		Random random = new Random();
+		Double d4 = (random.nextFloat() - 2D) * 2D;
+		this.stayPut = true;
+		if(!MinecraftServer.getServer().isDedicatedServer())
+		{
+			World theWorld = Minecraft.getMinecraft().theWorld; //only need the client world for particles
+
+
+			for (int p = 0; p < 10; p++)
+			{
+				try
+				{
+					if (!SimukraftReloadedConfig.configDisableBeamEffect)
+					{
+						theWorld.spawnParticle("portal", location.x + (random.nextDouble()) - 0.5,
+								location.y - 1, location.z + (random.nextDouble()) - 0.5, 0, -d4, 0);
+					}
+				}
+				catch (Exception e) {}
+
+				try
+				{
+					
+						theWorld.spawnParticle("portal", beamingTo.x + (random.nextDouble()) - 0.5,
+								beamingTo.y - 1, beamingTo.z + (random.nextDouble()) - 0.5, 0, -d4, 0);
+					
+				}
+				catch (Exception e)
+				{
+				}
+			}
+		}
+	}
+	
+	public static FolkData getFolkDataByEntityId(int id)
+	{
+		for (int i = 0; i < FolkRefs.theFolks.size(); i++)
+		{
+			FolkData fd = FolkRefs.theFolks.get(i);
+
+			if (fd.theEntity != null)
+			{
+				if (fd.theEntity.getEntityId() == id)
+				{
+					return fd;
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	public void respawnEntity(World world)
+	{
+		if (world == null)
+		{
+			return;
+		}
+
+		if (theEntity != null)
+		{
+			if (!theEntity.isDead)
+			{
+				return;
+			}
+		} //already spawned, so no need
+
+		if (getDistanceToPlayer() < 50)
+		{
+			this.theEntity = new EntityFolk(world);
+			this.theEntity.setLocationAndAngles(location.x, location.y, location.z, 0f, 0f);
+
+			if (!world.isRemote)
+			{
+				world.spawnEntityInWorld(this.theEntity);
+			}
+
+			//this.theEntity=entity;
+			entityId = this.theEntity.getEntityId();
+		}
+	}
+	
+	public int getDistanceToPlayer()
+	{
+		EntityPlayer p = FolkData.getClosestPlayer(this.location);
+
+		if (p == null)
+		{
+			return 9999;
+		}
+
+		V3 pv = new V3(p.posX, p.posY, p.posZ, this.location.theDimension);
+		return this.location.getDistanceTo(pv);
+	}
+	
+	/** returns the closest player to a location - make sure you set theDimension too */
+	public static EntityPlayer getClosestPlayer(V3 location)
+	{
+		try
+		{
+			World world = MinecraftServer.getServer().worldServerForDimension(location.theDimension);
+			EntityPlayer ret = world.getClosestPlayer(location.x, location.y, location.z, 60);
+			return ret;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+	
+	public V3 getLocationCloseToPlayer()
+	{
+		EntityPlayer p = (EntityPlayer) MinecraftServer.getServer().worldServerForDimension(0).playerEntities.get(0);
+		V3 ret;
+		try
+		{
+			ret = new V3(p.posX, p.posY+1, p.posZ, p.dimension);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return new V3(0d, 5d, 0d, 0);
+		}
+
+		boolean found = false;
+		Block bid = null;
+
+		try
+		{
+			for (int go = 30; go > 1; go--)
+			{
+				ret = new V3(p.posX, p.posY, p.posZ + go, p.dimension);
+
+				while (!found)
+				{
+					bid = p.worldObj.getBlock(ret.x.intValue(), ret.y.intValue(), ret.z.intValue()); // this can NPE
+
+					if ((p.worldObj.canBlockSeeTheSky(ret.x.intValue(), ret.y.intValue(), ret.z.intValue()) ||
+							p.dimension != 0) &&
+							bid != Blocks.leaves &&
+							bid == null)
+					{
+						found = true;
+					}
+
+					ret.y++;
+
+					if (ret.y > 200)
+					{
+						break;
+					}
+				}
+
+				if (found)
+				{
+					break;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		if (!found)
+		{
+			return new V3(p.posX, p.posY+1, p.posZ, p.dimension);
+		}
+
+		return ret;
+	}
+	
+	
+	/** what each folk is doing */
+	public enum FolkAction
+	{
+		ONWAYTOWORK, ATWORK, WANDER, ATHOME, GOINGHOME, STAYINGHOME, HAVINGBABY;
+
+		@Override
+		public String toString()
+		{
+			String ret = "Doing Nothing";
+
+			if (this == FolkAction.WANDER)
+			{
+				ret = "Just Wandering";
+			}
+			else if (this == FolkAction.ATWORK)
+			{
+				ret = "At Work";
+			}
+			else if (this == FolkAction.ONWAYTOWORK)
+			{
+				ret = "On My Way To Work";
+			}
+			else if (this == FolkAction.ATHOME)
+			{
+				ret = "Relaxing At Home";
+			}
+			else if (this == FolkAction.GOINGHOME)
+			{
+				ret = "Going Home";
+			}
+			else if (this == FolkAction.STAYINGHOME)
+			{
+				ret = "Staying At Home";
+			}
+			else if (this==FolkAction.HAVINGBABY) 
+			{
+				ret= "Having A Baby";
+			}
+
+			return ret;
+		}
+	}
+}

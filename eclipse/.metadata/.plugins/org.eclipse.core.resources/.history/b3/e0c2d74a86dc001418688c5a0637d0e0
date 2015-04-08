@@ -1,0 +1,11 @@
+package ashjack.SUKReloaded2.folk;
+
+public class FolkData 
+{
+	public FolkNeeds needs;
+	
+	public FolkData()
+	{
+		
+	}
+}

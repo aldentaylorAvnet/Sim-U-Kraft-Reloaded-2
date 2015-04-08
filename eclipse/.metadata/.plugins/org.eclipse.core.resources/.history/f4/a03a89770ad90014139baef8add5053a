@@ -1,0 +1,173 @@
+package ashjack.SUKReloaded2.folk;
+
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+import ashjack.SUKReloaded2.core.util.V3;
+import ashjack.SUKReloaded2.entity.EntityFolk;
+
+public class FolkData 
+{
+	public String name;
+	public int age;
+	public byte gender;
+	public Race folkRace;
+	
+	public EntityFolk theEntity;
+	public V3 location = null;
+	private int entityId;
+
+	public FolkData(World world)
+	{
+		folkRace = Race.assignRandomRace();		
+		location = getLocationCloseToPlayer();
+
+		if (location == null)
+		{
+			return;
+		}
+		
+		respawnEntity(world);
+		FolkRefs.theFolks.add(this);
+}
+	public static FolkData getFolkDataByEntityId(int id)
+	{
+		for (int i = 0; i < FolkRefs.theFolks.size(); i++)
+		{
+			FolkData fd = FolkRefs.theFolks.get(i);
+
+			if (fd.theEntity != null)
+			{
+				if (fd.theEntity.getEntityId() == id)
+				{
+					return fd;
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	public void respawnEntity(World world)
+	{
+		if (world == null)
+		{
+			return;
+		}
+
+		if (theEntity != null)
+		{
+			if (!theEntity.isDead)
+			{
+				return;
+			}
+		} //already spawned, so no need
+
+		if (getDistanceToPlayer() < 50)
+		{
+			this.theEntity = new EntityFolk(world);
+			this.theEntity.setLocationAndAngles(location.x, location.y, location.z, 0f, 0f);
+
+			if (!world.isRemote)
+			{
+				world.spawnEntityInWorld(this.theEntity);
+			}
+
+			//this.theEntity=entity;
+			entityId = this.theEntity.getEntityId();
+		}
+	}
+	
+	public int getDistanceToPlayer()
+	{
+		EntityPlayer p = FolkData.getClosestPlayer(this.location);
+
+		if (p == null)
+		{
+			return 9999;
+		}
+
+		V3 pv = new V3(p.posX, p.posY, p.posZ, this.location.theDimension);
+		return this.location.getDistanceTo(pv);
+	}
+	
+	/** returns the closest player to a location - make sure you set theDimension too */
+	public static EntityPlayer getClosestPlayer(V3 location)
+	{
+		try
+		{
+			World world = MinecraftServer.getServer().worldServerForDimension(location.theDimension);
+			EntityPlayer ret = world.getClosestPlayer(location.x, location.y, location.z, 60);
+			return ret;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+	
+	public V3 getLocationCloseToPlayer()
+	{
+		EntityPlayer p = (EntityPlayer) MinecraftServer.getServer().worldServerForDimension(0).playerEntities.get(0);
+		V3 ret;
+		try
+		{
+			ret = new V3(p.posX, p.posY+1, p.posZ, p.dimension);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return new V3(0d, 5d, 0d, 0);
+		}
+
+		boolean found = false;
+		Block bid = null;
+
+		try
+		{
+			for (int go = 30; go > 1; go--)
+			{
+				ret = new V3(p.posX, p.posY, p.posZ + go, p.dimension);
+
+				while (!found)
+				{
+					bid = p.worldObj.getBlock(ret.x.intValue(), ret.y.intValue(), ret.z.intValue()); // this can NPE
+
+					if ((p.worldObj.canBlockSeeTheSky(ret.x.intValue(), ret.y.intValue(), ret.z.intValue()) ||
+							p.dimension != 0) &&
+							bid != Blocks.leaves &&
+							bid == null)
+					{
+						found = true;
+					}
+
+					ret.y++;
+
+					if (ret.y > 200)
+					{
+						break;
+					}
+				}
+
+				if (found)
+				{
+					break;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
+		if (!found)
+		{
+			return new V3(p.posX, p.posY+1, p.posZ, p.dimension);
+		}
+
+		return ret;
+	}
+	
+}

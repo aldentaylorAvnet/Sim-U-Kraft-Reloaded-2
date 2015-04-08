@@ -1,0 +1,11 @@
+package ashjack.SUKReloaded2.folk.jobs;
+
+public class JobBaker extends Job{
+
+	@Override
+	public void onArrivedAtWork() 
+	{
+		
+	}
+
+}

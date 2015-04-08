@@ -1,0 +1,8 @@
+package ashjack.SUKReloaded2.folk.jobs;
+
+public abstract class Job 
+{
+	public abstract void onArrivedAtWork();
+	
+	public abstract void resetJob();
+}

@@ -1,0 +1,18 @@
+package ashjack.SUKReloaded2.folk;
+
+import java.util.ArrayList;
+
+import net.minecraft.world.World;
+
+public class FolkData 
+{
+	public FolkIdentity identity;
+	public FolkNeeds needs;
+	
+	public ArrayList<FolkRelationships> relationships = new ArrayList<FolkRelationships>();
+	
+	public FolkData(World world)
+	{
+		FolkUtils.
+	}
+}

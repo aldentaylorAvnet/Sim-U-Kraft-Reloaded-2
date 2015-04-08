@@ -1,0 +1,16 @@
+package ashjack.SUKReloaded2.folk;
+
+import java.util.ArrayList;
+
+public class FolkData 
+{
+	public FolkGenology genology;
+	public FolkNeeds needs;
+	
+	public ArrayList<FolkRelationships> relationships = new ArrayList<FolkRelationships>();
+	
+	public FolkData()
+	{
+		
+	}
+}
